@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SCADA API Tester</title>
+
+    <style>
+        body {
+            font-family: Segoe UI, sans-serif;
+            background: #f0f2f5;
+            margin: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .card h3 {
+            margin-top: 0;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .input-group {
+            margin-bottom: 10px;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 5px;
+        }
+
+        input, select, button {
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            margin: 2px;
+        }
+
+        button {
+            background: #0056b3;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #004494;
+        }
+
+        .output-box {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 10px;
+            border-radius: 5px;
+            height: 250px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            font-family: Consolas, monospace;
+            font-size: 12px;
+        }
+
+        .status-connected {
+            color: green;
+            font-weight: bold;
+        }
+
+        .status-disconnected {
+            color: red;
+            font-weight: bold;
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>SCADA WebSocket API Tester</h2>
+
+<div class="card" style="margin-bottom:20px;">
+    <h3>Connection</h3>
+    
+    <div class="input-group">
+        Plant ID:
+        <input id="plant" value="via-3mw">
+
+        <button onclick="subscribe()">Connect & Subscribe</button>
+
+        <span style="margin-left:20px;">
+            Status:
+            <span id="status" class="status-disconnected">Disconnected</span>
+        </span>
+    </div>
+</div>
+
+<div class="grid-container">
+
+    <!-- Devices -->
+    <div class="card">
+        <h3>Available Devices</h3>
+
+        <div class="input-group">
+            <button onclick="getDevices()">Fetch Device List</button>
+            <button onclick="clearBox('out-devices')" style="background:#666;">Clear</button>
+        </div>
+
+        <pre id="out-devices" class="output-box"></pre>
+    </div>
+
+    <!-- Reports -->
+    <div class="card">
+        <h3>Reports</h3>
+
+        <div class="input-group">
+            Report Page:
+            <input id="pageName" value="test Report Page 1">
+            Date:
+            <input id="reportDate" type="date">
+
+            <button onclick="generateReport()">Generate Report</button>
+            <button onclick="clearBox('out-report')" style="background:#666;">Clear</button>
+        </div>
+
+        <pre id="out-report" class="output-box"></pre>
+    </div>
+
+    <!-- Universal Analytics -->
+    <div class="card full-width">
+        <h3>Universal Analytics (RAM + Disk Aggregation)</h3>
+
+        <div class="input-group">
+            Device:
+            <input id="uaDevice" value="inverter2" style="width: 120px;">
+
+            Tag:
+            <input id="uaTag" value="ALL" placeholder="e.g. Active Power" style="width: 150px;">
+
+            Start Date:
+            <input id="uaStart" type="date">
+            
+            End Date:
+            <input id="uaEnd" type="date">
+
+            Start Time:
+            <input id="uaStartTime" type="time" value="06:00">
+            
+            End Time:
+            <input id="uaEndTime" type="time" value="18:00">
+
+            Period:
+            <select id="uaPeriod">
+                <option value="1">1 Min</option>
+                <option value="5" selected>5 Min</option>
+                <option value="10">10 Min</option>
+                <option value="15">15 Min</option>
+                <option value="60">60 Min</option>
+            </select>
+
+            Method:
+            <select id="uaMethod">
+                <option value="last" selected>Last</option>
+                <option value="first">First</option>
+                <option value="max">Max</option>
+                <option value="min">Min</option>
+            </select>
+
+            <button onclick="getAnalyticsData()" style="background:#28a745;">Fetch Analytics</button>
+            <button onclick="clearBox('out-analytics')" style="background:#666;">Clear</button>
+        </div>
+
+        <pre id="out-analytics" class="output-box" style="height:300px;"></pre>
+    </div>
+
+    <!-- Live Telemetry -->
+    <div class="card full-width">
+        <h3>Live Telemetry Stream</h3>
+
+        <div class="input-group">
+            Frontend Filter: 
+            <input id="liveFilter" placeholder="Type device name to isolate..." style="width: 250px;">
+            <button onclick="clearBox('out-live')" style="background:#666;">Clear View</button>
+        </div>
+
+        <pre id="out-live" class="output-box" style="height:350px;"></pre>
+    </div>
+
+</div>
+
+<script>
+
+let ws;
+
+// ----------------------------
+
+function logTo(boxId, msg, json=true)
+{
+    const box = document.getElementById(boxId);
+
+    const txt = json
+        ? JSON.stringify(msg,null,2)
+        : msg;
+
+    box.textContent =
+        txt +
+        "\n\n============================\n\n" +
+        box.textContent;
+}
+
+// ----------------------------
+
+function clearBox(id)
+{
+    document.getElementById(id).textContent = "";
+}
+
+// ----------------------------
+
+function connect()
+{
+    ws = new WebSocket("ws://161.97.87.75:5000");
+
+    ws.onopen = () =>
+    {
+        document.getElementById("status").innerText = "Connected";
+        document.getElementById("status").className = "status-connected";
+
+        const sub =
+        {
+            type:"subscribe",
+            unit_id: document.getElementById("plant").value
+        };
+
+        ws.send(JSON.stringify(sub));
+
+        logTo("out-live", "[SYSTEM] Connected and subscribed", false);
+    };
+
+    ws.onmessage = (event) =>
+    {
+        try
+        {
+            const json = JSON.parse(event.data);
+            const liveFilter = document.getElementById("liveFilter").value.trim().toLowerCase();
+
+            switch(json.type)
+            {
+                case "device_list":
+                    logTo("out-devices", json);
+                    break;
+
+                case "analytics_data_result":
+                    logTo("out-analytics", json);
+                    break;
+
+                case "generate_report":
+                case "generate_report_result":
+                case "report":
+                case "report_result":
+                case "report_generated":
+                case "report_data":
+                    logTo("out-report", json);
+                    break;
+
+                case "data":
+                    // 🚨 Apply the Live Frontend Filter
+                    if (liveFilter !== "") {
+                        const incDevice = String(json.device || json.deviceName || "").toLowerCase();
+                        if (!incDevice.includes(liveFilter)) {
+                            return; // Silently drop the payload if it doesn't match the filter
+                        }
+                    }
+                    logTo("out-live", json);
+                    break;
+
+                default:
+                    if (json.pageName || json.report || json.reportData)
+                    {
+                        logTo("out-report", json);
+                    }
+                    else
+                    {
+                        logTo("out-live", json);
+                    }
+                    break;
+            }
+        }
+        catch(err)
+        {
+            logTo("out-live", "RAW TEXT:\n" + event.data, false);
+        }
+    };
+
+    ws.onclose = () =>
+    {
+        document.getElementById("status").innerText = "Disconnected";
+        document.getElementById("status").className = "status-disconnected";
+
+        logTo("out-live", "[SYSTEM] Connection Closed", false);
+    };
+
+    ws.onerror = (err)=>
+    {
+        console.error(err);
+        logTo("out-live", "[SYSTEM] WebSocket Error", false);
+    };
+}
+
+// ----------------------------
+
+function subscribe()
+{
+    if(!ws || ws.readyState !== WebSocket.OPEN)
+    {
+        connect();
+        return;
+    }
+
+    const req =
+    {
+        type:"subscribe",
+        unit_id: document.getElementById("plant").value
+    };
+
+    ws.send(JSON.stringify(req));
+}
+
+// ----------------------------
+
+function getDevices()
+{
+    ws.send(JSON.stringify({
+        type:"get_devices",
+        unit_id: document.getElementById("plant").value
+    }));
+}
+
+// ----------------------------
+
+function getAnalyticsData()
+{
+    ws.send(JSON.stringify({
+        type: "get_analytics_data",
+        unit_id: document.getElementById("plant").value,
+        device: document.getElementById("uaDevice").value,
+        tag: document.getElementById("uaTag").value,
+        startDate: document.getElementById("uaStart").value,
+        endDate: document.getElementById("uaEnd").value,
+        startTime: document.getElementById("uaStartTime").value, 
+        endTime: document.getElementById("uaEndTime").value,     
+        timePeriod: document.getElementById("uaPeriod").value,
+        method: document.getElementById("uaMethod").value
+    }));
+}
+
+// ----------------------------
+
+function generateReport()
+{
+    ws.send(JSON.stringify({
+        type:"generate_report",
+        unit_id: document.getElementById("plant").value,
+        pageName: document.getElementById("pageName").value,
+        date: document.getElementById("reportDate").value
+    }));
+}
+
+// ----------------------------
+
+// Auto-fill dates with today's date
+const todayStr = new Date().toISOString().split("T")[0];
+
+document.getElementById("reportDate").value = todayStr;
+document.getElementById("uaStart").value = todayStr;
+document.getElementById("uaEnd").value = todayStr;
+
+// Initialize connection
+connect();
+
+</script>
+
+</body>
+</html>

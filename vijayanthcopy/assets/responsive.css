@@ -1,0 +1,61 @@
+/* Shared responsive foundation for every SCADA screen. */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { width: 100%; max-width: 100%; min-height: 100%; overflow-x: hidden; }
+img, video { max-width: 100%; height: auto; }
+canvas { max-width: 100% !important; }
+main { min-width: 0; }
+main > * { min-width: 0; }
+button, a, input, select { -webkit-tap-highlight-color: transparent; }
+.overflow-x-auto, .table-hscroll, [id$="TableScroll"] { overscroll-behavior-x: contain; -webkit-overflow-scrolling: touch; }
+
+@media (max-width: 767px) {
+    body { font-size: 14px; }
+    main, main.md\:ml-64, main.md\:ml-16 { margin-left: 0 !important; width: 100% !important; max-width: 100% !important; }
+    #sidebar { width: min(18rem, 88vw) !important; max-width: 88vw; }
+    #sidebar:not(.-translate-x-full) { transform: translateX(0) !important; }
+    main > header, body > nav > div > div { min-height: 3.5rem; gap: .65rem; }
+    main > header { padding: .75rem !important; flex-wrap: wrap; }
+    main > header > div { min-width: 0; }
+    main > header h1, main > header h2 { font-size: 1rem !important; line-height: 1.25 !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    main > header p { font-size: .7rem !important; }
+    main > div[class*="p-4"], main > div[class*="p-6"] { padding: .75rem !important; gap: .85rem !important; }
+    .grid.grid-cols-3 { grid-template-columns: minmax(0, 1fr) !important; }
+    #inv_summary_cards { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    #inverterGrid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    .grid.grid-cols-8 { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; }
+    .report-table th, .report-table td { white-space: nowrap; }
+    .table-hscroll { width: 100%; max-width: calc(100vw - 1.5rem); }
+    #printableReport { padding: .75rem !important; }
+    #printableReport .grid.grid-cols-3 { gap: .5rem !important; }
+    #stringModal, [id$="-modal"] { padding: .5rem !important; align-items: flex-end !important; }
+    #stringModal > div, [id$="-modal"] > div { max-height: 92dvh !important; border-radius: 1rem 1rem 0 0 !important; }
+    input, select, button { min-height: 2.5rem; }
+    svg[style*="min-width"] { max-width: none !important; }
+    .h-\[220px\], .h-\[300px\] { min-height: 220px; }
+    body > nav .h-14 { height: auto !important; min-height: 3.5rem; padding: .5rem 0; flex-wrap: wrap; }
+    body > nav h1 { font-size: 1rem !important; }
+    body > nav .flex.items-center.gap-3 { gap: .4rem !important; flex-wrap: wrap; justify-content: flex-end; }
+    body > nav button, body > nav a { padding: .45rem .6rem !important; }
+}
+
+@media (max-width: 479px) {
+    #inv_summary_cards { grid-template-columns: minmax(0, 1fr) !important; }
+    #inverterGrid { grid-template-columns: minmax(0, 1fr) !important; }
+    .grid.grid-cols-8 { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    main > header .flex.items-center.gap-2 { gap: .35rem !important; }
+    main > header button, main > header a { padding-left: .6rem !important; padding-right: .6rem !important; }
+    .report-table th { font-size: 11px !important; }
+    .report-table td { font-size: 12px !important; }
+}
+
+@media (min-width: 768px) and (max-width: 1100px) {
+    main.md\:ml-64 { min-width: 0; }
+    main > div[class*="max-w-"] { padding-left: 1rem !important; padding-right: 1rem !important; }
+    .report-table th, .report-table td { white-space: nowrap; }
+}
+
+@media (orientation: landscape) and (max-height: 560px) {
+    #sidebar nav { padding-top: .5rem !important; padding-bottom: .5rem !important; }
+    #sidebar .nav-item { padding-top: .4rem !important; padding-bottom: .4rem !important; }
+    #stringModal > div, [id$="-modal"] > div { max-height: 96dvh !important; }
+}

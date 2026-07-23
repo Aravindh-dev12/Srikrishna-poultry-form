@@ -1,0 +1,227 @@
+/* Overview inverter cards and plant information layout. */
+.overview-inverter-row {
+    display: block !important;
+    margin-bottom: 16px !important;
+}
+
+.overview-inverter-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    grid-column: 1 / -1 !important;
+}
+
+.overview-plant-info-card {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 0 16px !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border-radius: 14px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 5px 16px rgba(15, 23, 42, .06) !important;
+    background: #fff !important;
+}
+
+.overview-plant-info-card > h3 {
+    margin: 0 !important;
+    padding: 11px 16px !important;
+    border: 0 !important;
+    background: var(--plant-header-bg, #d1fae5) !important;
+    color: #111827 !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    letter-spacing: .05em !important;
+    text-transform: uppercase;
+}
+
+.overview-plant-info-card > div {
+    margin: 0 !important;
+    padding: 12px 16px !important;
+    display: grid !important;
+    grid-template-columns: 1.7fr .8fr .9fr 1fr .75fr !important;
+    gap: 12px !important;
+    align-items: stretch !important;
+}
+
+.overview-plant-info-card .flex.justify-between {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: flex-start !important;
+    gap: 5px !important;
+    min-height: 62px;
+    padding: 10px 12px !important;
+    border: 1px solid #e2e8f0 !important;
+    border-radius: 10px;
+    background: #f8fafc;
+}
+
+.overview-plant-info-card .flex.justify-between > :first-child {
+    color: #64748b !important;
+    font-size: 9px !important;
+    font-weight: 800 !important;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.overview-plant-info-card .flex.justify-between > :last-child {
+    max-width: 100% !important;
+    min-width: 0;
+    text-align: left !important;
+    color: #111827 !important;
+    font-size: 11px !important;
+    font-weight: 700 !important;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.overview-plant-info-card #plantStatusBadge {
+    display: inline-flex;
+    align-items: center;
+    padding: 3px 8px;
+    border-radius: 999px;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+}
+
+#inverterGrid {
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    gap: 12px !important;
+}
+
+#inverterGrid > div:not(.col-span-full) {
+    min-height: 132px !important;
+    border-radius: 14px !important;
+    padding: 14px !important;
+    overflow: hidden;
+    isolation: isolate;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, 0.10) !important;
+    border: 1px solid rgba(255, 255, 255, 0.30);
+    transform: translateZ(0);
+}
+
+#inverterGrid > div:not(.col-span-full)::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(145deg, rgba(255,255,255,.16), transparent 50%);
+    pointer-events: none;
+    z-index: -1;
+}
+
+#inverterGrid > div:not(.col-span-full):hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 12px 28px rgba(15, 23, 42, 0.16) !important;
+}
+
+#inverterGrid > div:not(.col-span-full) > button {
+    top: 12px !important;
+    right: 12px !important;
+    width: 28px !important;
+    height: 28px !important;
+    border-radius: 999px;
+    background: rgba(255,255,255,.16);
+    backdrop-filter: blur(4px);
+}
+
+#inverterGrid > div:not(.col-span-full) > p:first-of-type {
+    text-align: left !important;
+    padding: 0 38px 0 0 !important;
+    font-size: 11px !important;
+    line-height: 1.25rem !important;
+    letter-spacing: .08em !important;
+    opacity: .92;
+}
+
+#inverterGrid > div:not(.col-span-full) > p:nth-of-type(2) {
+    margin-top: 16px !important;
+    display: flex !important;
+    align-items: baseline !important;
+    gap: 5px !important;
+    min-width: 0;
+    white-space: nowrap !important;
+    text-align: left !important;
+    line-height: 1 !important;
+}
+
+#inverterGrid .overview-power-value {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: clamp(20px, 1.65vw, 25px) !important;
+    font-weight: 900;
+    letter-spacing: -.035em;
+    font-variant-numeric: tabular-nums;
+}
+
+#inverterGrid .overview-power-unit {
+    flex: 0 0 auto;
+    font-size: 10px !important;
+    font-weight: 800;
+    opacity: .84;
+}
+
+#inverterGrid > div:not(.col-span-full) > div:last-child {
+    position: absolute !important;
+    left: 14px !important;
+    right: 14px !important;
+    bottom: 12px !important;
+    padding-top: 9px !important;
+    border-top-color: rgba(255,255,255,.25) !important;
+    text-align: left !important;
+}
+
+#inverterGrid > div:not(.col-span-full) > div:last-child::before {
+    content: "Today generation";
+    display: block;
+    margin-bottom: 2px;
+    font-size: 9px;
+    line-height: 1;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    opacity: .68;
+}
+
+#inverterGrid > div:not(.col-span-full) > div:last-child p {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+    white-space: nowrap;
+}
+
+@media (max-width: 1100px) {
+    .overview-plant-info-card > div {
+        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 760px) {
+    .overview-plant-info-card > div {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+}
+
+@media (max-width: 640px) {
+    #inverterGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 9px !important;
+    }
+    #inverterGrid > div:not(.col-span-full) {
+        min-height: 124px !important;
+        padding: 12px !important;
+        border-radius: 12px !important;
+    }
+    #inverterGrid .overview-power-value { font-size: 20px !important; }
+    #inverterGrid > div:not(.col-span-full) > div:last-child {
+        left: 12px !important;
+        right: 12px !important;
+        bottom: 10px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .overview-plant-info-card > div {
+        grid-template-columns: 1fr !important;
+    }
+}

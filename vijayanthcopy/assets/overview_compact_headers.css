@@ -1,0 +1,106 @@
+/* Overview compact header refinements */
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) .forced-plant-info-card > h3,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) .overview-plant-info-card > h3,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) h3:has(+ .space-y-2) {
+    margin: 0 !important;
+    padding: 8px 14px !important;
+    min-height: 34px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: var(--plant-header-bg) !important;
+    border-bottom: 1px solid var(--plant-border) !important;
+    color: #111827 !important;
+    font-size: 13px !important;
+    font-weight: 900 !important;
+    letter-spacing: 0.02em !important;
+    text-align: center !important;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) .forced-plant-info-card,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) .overview-plant-info-card {
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) .forced-plant-info-card .space-y-2,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) .overview-plant-info-card .space-y-2 {
+    padding: 8px 12px 10px !important;
+    gap: 5px !important;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) .forced-plant-info-card .flex.justify-between,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) .overview-plant-info-card .flex.justify-between {
+    min-height: 30px !important;
+    padding: 5px 0 !important;
+}
+
+/* Compact Plant Overview table height */
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_time.closest-guard,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_power.closest-guard {
+    display: initial;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_time,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_power,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_freq,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_pf,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_today,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_total {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+    line-height: 1.15 !important;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_time.closest-guard,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_power.closest-guard {
+    display: initial;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_time {
+    position: static;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_time,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_power {
+    font-size: 12px !important;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_time,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_power,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_freq,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_pf,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_today,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_total,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_time ~ td {
+    height: 30px !important;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) #vcb_time.closest-guard {
+    display: unset;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) div:has(> table #vcb_time) {
+    overflow-x: auto !important;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) div:has(> .overflow-x-auto table #vcb_time) > .bg-emerald-700,
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) div:has(> .overflow-x-auto table #vcb_time) > .plant-table-heading {
+    padding-top: 6px !important;
+    padding-bottom: 6px !important;
+    min-height: 34px !important;
+    line-height: 1.1 !important;
+    font-size: 16px !important;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) table:has(#vcb_time) th {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+    line-height: 1.15 !important;
+}
+
+body[data-plant-theme]:has(#vcb_time):has(#inverterGrid) table:has(#vcb_time) td {
+    padding-top: 7px !important;
+    padding-bottom: 7px !important;
+    line-height: 1.15 !important;
+}
