@@ -2,6 +2,7 @@
     if (!/overview\.php$/i.test(window.location.pathname)) return;
 
     let scheduled = false;
+    let observer = null;
 
     function numberFromText(text) {
         const match = String(text || '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
@@ -53,46 +54,97 @@
 
     function findPlantOverviewCard() {
         const tableCell = document.getElementById('vcb_time') || document.getElementById('vcb_power') || document.getElementById('vcb_today');
-        const byTableCell = tableCell?.closest('.bg-white');
-        if (byTableCell) return byTableCell;
-
-        return Array.from(document.querySelectorAll('.bg-white')).find(card => {
-            const text = (card.textContent || '').replace(/\s+/g, ' ').trim();
-            return /PLANT OVERVIEW/i.test(text) && /Active Power/i.test(text) && /Life Time Energy/i.test(text);
-        }) || null;
+        return tableCell?.closest('.bg-white') || null;
     }
 
-    function positionPlantInformation() {
+    function createDetailCell(label, valueNode) {
+        const item = document.createElement('div');
+        item.className = 'min-w-0 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5';
+
+        const labelEl = document.createElement('div');
+        labelEl.className = 'text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1';
+        labelEl.textContent = label;
+
+        const valueWrap = document.createElement('div');
+        valueWrap.className = 'text-xs font-extrabold text-slate-800 break-words';
+        valueWrap.appendChild(valueNode);
+
+        item.append(labelEl, valueWrap);
+        return item;
+    }
+
+    function mergePlantDetailsIntoOverview() {
         const plantCard = findPlantInformationCard();
-        const overviewTable = findPlantOverviewCard();
-        const content = document.querySelector('main > div.p-4, main > div.sm\:p-6, main > div');
-        if (!plantCard || !overviewTable || !content || plantCard === overviewTable) return;
-
-        plantCard.classList.add('overview-plant-info-card');
-        overviewTable.classList.add('overview-main-table-card');
-
-        let sideRow = document.querySelector('.overview-table-info-row');
-        if (!sideRow) {
-            sideRow = document.createElement('div');
-            sideRow.className = 'overview-table-info-row';
-            content.insertBefore(sideRow, overviewTable);
+        const overviewCard = findPlantOverviewCard();
+        const table = overviewCard?.querySelector('table');
+        if (!plantCard || !overviewCard || !table || plantCard === overviewCard) return;
+        if (table.querySelector('#overviewPlantDetailsRow')) {
+            plantCard.remove();
+            return;
         }
 
-        // Always rebuild this row so Plant Information never remains beside the inverter cards.
-        if (overviewTable.parentElement !== sideRow) sideRow.appendChild(overviewTable);
-        if (plantCard.parentElement !== sideRow) sideRow.appendChild(plantCard);
+        const values = {};
+        plantCard.querySelectorAll('.flex.justify-between').forEach(row => {
+            const spans = row.querySelectorAll(':scope > span');
+            if (spans.length < 2) return;
+            const label = (spans[0].textContent || '').trim();
+            values[label] = spans[1];
+        });
+
+        const tbody = table.tBodies[0] || table.createTBody();
+        const detailsRow = document.createElement('tr');
+        detailsRow.id = 'overviewPlantDetailsRow';
+
+        const detailsCell = document.createElement('td');
+        detailsCell.colSpan = Math.max(1, table.tHead?.rows[0]?.cells.length || 6);
+        detailsCell.className = 'border border-t-0 bg-white p-0 text-left';
+
+        const heading = document.createElement('div');
+        heading.className = 'flex items-center justify-between gap-3 border-b border-slate-200 bg-slate-50 px-4 py-2';
+        heading.innerHTML = '<span class="text-xs font-black uppercase tracking-wider text-slate-700"><i class="fa-solid fa-circle-info mr-2 text-emerald-600"></i>Plant Details</span>';
+
+        const grid = document.createElement('div');
+        grid.className = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 p-3';
+
+        const fields = ['Name', 'Capacity', 'Location', 'Service Number', 'Status'];
+        fields.forEach(label => {
+            const valueNode = values[label] || document.createTextNode('--');
+            grid.appendChild(createDetailCell(label, valueNode));
+        });
+
+        detailsCell.append(heading, grid);
+        detailsRow.appendChild(detailsCell);
+        tbody.appendChild(detailsRow);
+
+        overviewCard.classList.add('overview-main-table-card', 'overflow-hidden');
+        plantCard.remove();
+
+        const oldRows = document.querySelectorAll('#forcedOverviewInfoRow, .overview-table-info-row');
+        oldRows.forEach(row => {
+            if (!row.isConnected) return;
+            if (overviewCard.parentElement === row) row.parentElement?.insertBefore(overviewCard, row);
+            if (!row.children.length) row.remove();
+        });
 
         const inverterGrid = document.getElementById('inverterGrid');
         const inverterRow = inverterGrid?.closest('.grid.grid-cols-12');
         const inverterPanel = inverterGrid?.closest('.bg-white');
-        if (inverterRow) inverterRow.classList.add('overview-inverter-row');
-        if (inverterPanel) inverterPanel.classList.add('overview-inverter-panel');
+        if (inverterRow) {
+            inverterRow.classList.add('overview-inverter-row');
+            inverterRow.style.setProperty('display', 'block', 'important');
+            inverterRow.style.setProperty('width', '100%', 'important');
+        }
+        if (inverterPanel) {
+            inverterPanel.classList.add('overview-inverter-panel');
+            inverterPanel.style.setProperty('width', '100%', 'important');
+            inverterPanel.style.setProperty('max-width', 'none', 'important');
+        }
     }
 
     function apply() {
         scheduled = false;
         fixInverterGrid();
-        positionPlantInformation();
+        mergePlantDetailsIntoOverview();
     }
 
     function schedule() {
@@ -104,14 +156,14 @@
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply, { once: true });
     else apply();
 
-    const observer = new MutationObserver(schedule);
     const startObserver = () => {
         const content = document.querySelector('main');
         if (!content) {
             setTimeout(startObserver, 250);
             return;
         }
-        observer.observe(content, { childList: true, subtree: true, characterData: true });
+        observer = new MutationObserver(schedule);
+        observer.observe(content, { childList: true, subtree: true });
         schedule();
     };
 
