@@ -25,11 +25,19 @@
         const style = document.createElement('style');
         style.id = 'overviewCombinedTableStyles';
         style.textContent = `
-            .overview-combined-card {
+            .overview-combined-parent {
+                display: block !important;
                 width: 100% !important;
                 max-width: none !important;
-                margin-left: 0 !important;
-                margin-right: 0 !important;
+                grid-template-columns: none !important;
+            }
+            .overview-combined-card {
+                display: block !important;
+                grid-column: 1 / -1 !important;
+                width: 100% !important;
+                min-width: 0 !important;
+                max-width: none !important;
+                margin: 0 0 16px 0 !important;
                 border-radius: 14px !important;
                 overflow: hidden !important;
                 box-shadow: 0 8px 24px rgba(15, 23, 42, .06) !important;
@@ -45,25 +53,34 @@
             }
             .overview-combined-card .overflow-x-auto {
                 width: 100% !important;
+                max-width: none !important;
+                overflow-x: visible !important;
             }
             .overview-combined-card table {
                 width: 100% !important;
-                min-width: 960px !important;
+                min-width: 0 !important;
+                max-width: none !important;
+                table-layout: fixed !important;
                 border-collapse: separate !important;
                 border-spacing: 0 !important;
             }
             .overview-combined-card table th {
-                padding: 12px 14px !important;
+                padding: 12px 10px !important;
                 background: #f8fafc !important;
                 color: #475569 !important;
                 font-size: 11px !important;
                 font-weight: 900 !important;
-                letter-spacing: .025em !important;
+                line-height: 1.25 !important;
+                letter-spacing: .015em !important;
+                white-space: normal !important;
                 border-color: #e2e8f0 !important;
             }
             .overview-combined-card table td {
-                padding: 13px 14px !important;
+                padding: 13px 10px !important;
                 font-size: 12px !important;
+                line-height: 1.3 !important;
+                white-space: normal !important;
+                overflow-wrap: anywhere !important;
                 border-color: #e2e8f0 !important;
             }
             .overview-combined-details-cell {
@@ -88,7 +105,7 @@
             }
             .overview-combined-details-grid {
                 display: grid !important;
-                grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+                grid-template-columns: 1.35fr .75fr 1fr 1fr .7fr !important;
                 width: 100% !important;
             }
             .overview-combined-detail {
@@ -140,16 +157,15 @@
                 max-width: none !important;
             }
             @media (max-width: 900px) {
+                .overview-combined-card .overflow-x-auto { overflow-x: auto !important; }
+                .overview-combined-card table { min-width: 760px !important; }
                 .overview-combined-details-grid {
                     grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
                 }
-                .overview-combined-detail {
-                    border-bottom: 1px solid #e2e8f0 !important;
-                }
+                .overview-combined-detail { border-bottom: 1px solid #e2e8f0 !important; }
                 .overview-combined-detail:nth-child(2n) { border-right: 0 !important; }
             }
             @media (max-width: 520px) {
-                .overview-combined-card table { min-width: 760px !important; }
                 .overview-combined-details-grid { grid-template-columns: 1fr !important; }
                 .overview-combined-detail {
                     min-height: 68px !important;
@@ -176,6 +192,22 @@
         return item;
     }
 
+    function releaseOldWidthWrappers(overviewCard) {
+        document.querySelectorAll('#forcedOverviewInfoRow, .overview-table-info-row').forEach(wrapper => {
+            if (wrapper.contains(overviewCard) && wrapper.parentElement) {
+                wrapper.parentElement.insertBefore(overviewCard, wrapper);
+            }
+            if (!wrapper.children.length) wrapper.remove();
+        });
+
+        const parent = overviewCard.parentElement;
+        if (parent) {
+            parent.classList.add('overview-combined-parent');
+            parent.style.setProperty('width', '100%', 'important');
+            parent.style.setProperty('max-width', 'none', 'important');
+        }
+    }
+
     function combinePlantInformation() {
         addCombinedTableStyles();
 
@@ -183,8 +215,10 @@
         const table = overviewCard?.querySelector('table');
         if (!overviewCard || !table) return;
 
+        releaseOldWidthWrappers(overviewCard);
         overviewCard.classList.add('overview-combined-card');
         overviewCard.style.setProperty('width', '100%', 'important');
+        overviewCard.style.setProperty('min-width', '0', 'important');
         overviewCard.style.setProperty('max-width', 'none', 'important');
 
         const existingRow = document.getElementById('overviewPlantDetailsRow');
@@ -227,13 +261,6 @@
 
         const inverterRow = findInverterRow();
         if (inverterRow) inverterRow.classList.add('overview-inverter-full-row');
-
-        document.querySelectorAll('#forcedOverviewInfoRow, .overview-table-info-row').forEach(wrapper => {
-            if (overviewCard.parentElement === wrapper && wrapper.parentElement) {
-                wrapper.parentElement.insertBefore(overviewCard, wrapper);
-            }
-            if (!wrapper.children.length) wrapper.remove();
-        });
     }
 
     function startDataFallbacks() {
