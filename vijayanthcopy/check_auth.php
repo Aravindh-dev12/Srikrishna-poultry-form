@@ -62,7 +62,7 @@ ob_start(function ($html) use ($signedPlantIdJson, $signedRoleJson, $signedConfi
         $injection .= "\n<link rel=\"stylesheet\" href=\"assets/overview_compact_headers.css?v=20260721-2\">";
         $injection .= "\n<script src=\"assets/inverter3_fix.js?v=20260721-4\"></script>";
         $injection .= "\n<script src=\"assets/overview_ui_runtime_fix.js?v=20260724-7\"></script>";
-        $injection .= "\n<script src=\"assets/overview_week_generation.js?v=20260724-2\"></script>";
+        $injection .= "\n<script src=\"assets/overview_week_generation.js?v=20260724-3\"></script>";
         $injection .= <<<'HTML'
 <script>
 (function () {
