@@ -2,6 +2,7 @@
     if (!/overview\.php$/i.test(window.location.pathname)) return;
 
     let dataStarted = false;
+    let syncQueued = false;
 
     function findOverviewCard() {
         return (document.getElementById('vcb_time') || document.getElementById('vcb_power'))?.closest('.bg-white') || null;
@@ -16,6 +17,10 @@
 
     function findInverterRow() {
         return document.getElementById('inverterGrid')?.closest('.grid.grid-cols-12') || null;
+    }
+
+    function findInverterPanel() {
+        return document.getElementById('inverterGrid')?.closest('.bg-white') || null;
     }
 
     function addStyles() {
@@ -84,6 +89,7 @@
             inverterRow.parentElement.insertBefore(overviewCard, inverterRow);
             inverterRow.parentElement.style.setProperty('width', '100%', 'important');
             inverterRow.parentElement.style.setProperty('max-width', 'none', 'important');
+            inverterRow.parentElement.style.setProperty('align-items', 'stretch', 'important');
         }
 
         overviewCard.classList.remove('col-span-9', 'lg:col-span-9', 'w-3/4', 'max-w-4xl', 'max-w-5xl', 'max-w-6xl');
@@ -137,6 +143,30 @@
         tbody.append(titleRow, labelRow, valueRow);
     }
 
+    function syncOverviewWidth() {
+        const overviewCard = findOverviewCard();
+        const inverterPanel = findInverterPanel();
+        if (!overviewCard || !inverterPanel) return;
+
+        const width = Math.round(inverterPanel.getBoundingClientRect().width);
+        if (width <= 0) return;
+
+        overviewCard.style.setProperty('width', `${width}px`, 'important');
+        overviewCard.style.setProperty('max-width', `${width}px`, 'important');
+        overviewCard.style.setProperty('min-width', '0', 'important');
+        overviewCard.style.setProperty('flex-basis', `${width}px`, 'important');
+        overviewCard.style.setProperty('align-self', 'stretch', 'important');
+    }
+
+    function queueWidthSync() {
+        if (syncQueued) return;
+        syncQueued = true;
+        requestAnimationFrame(() => {
+            syncQueued = false;
+            syncOverviewWidth();
+        });
+    }
+
     function applyLayout() {
         addStyles();
         const overviewCard = findOverviewCard();
@@ -153,6 +183,7 @@
         }
 
         if (inverterRow) inverterRow.classList.add('overview-inverter-full-row');
+        queueWidthSync();
     }
 
     function startDataFallbacks() {
@@ -173,5 +204,8 @@
     setTimeout(apply, 250);
     setTimeout(apply, 1000);
     setTimeout(apply, 2500);
-    window.addEventListener('resize', apply);
+    window.addEventListener('resize', queueWidthSync);
+
+    const observer = new MutationObserver(queueWidthSync);
+    observer.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'style'] });
 })();
