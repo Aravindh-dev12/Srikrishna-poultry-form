@@ -61,9 +61,8 @@ ob_start(function ($html) use ($signedPlantIdJson, $signedRoleJson, $signedConfi
         $injection .= "\n<link rel=\"stylesheet\" href=\"assets/overview_inverter_ui.css?v=20260721-5\">";
         $injection .= "\n<link rel=\"stylesheet\" href=\"assets/overview_compact_headers.css?v=20260721-2\">";
         $injection .= "\n<script src=\"assets/inverter3_fix.js?v=20260721-4\"></script>";
-        $injection .= "\n<script src=\"assets/overview_ui_runtime_fix.js?v=20260721-7\"></script>";
+        $injection .= "\n<script src=\"assets/overview_ui_runtime_fix.js?v=20260724-1\"></script>";
         $injection .= "\n<script src=\"assets/overview_week_generation.js?v=20260721-4\"></script>";
-        $injection .= "\n<script src=\"assets/overview_force_plant_info_position.js?v=20260721-6\"></script>";
     }
 
     if ($currentPage === 'sld.php') {
