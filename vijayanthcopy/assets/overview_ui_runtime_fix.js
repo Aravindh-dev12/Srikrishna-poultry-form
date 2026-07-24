@@ -4,8 +4,7 @@
     let dataStarted = false;
 
     function findOverviewCard() {
-        const marker = document.getElementById('vcb_time') || document.getElementById('vcb_power');
-        return marker?.closest('.bg-white') || null;
+        return (document.getElementById('vcb_time') || document.getElementById('vcb_power'))?.closest('.bg-white') || null;
     }
 
     function findPlantInformationCard() {
@@ -25,197 +24,120 @@
         style.id = 'overviewCombinedTableStyles';
         style.textContent = `
             .overview-combined-card {
-                display: block !important;
-                position: relative !important;
-                float: none !important;
-                clear: both !important;
-                flex: 0 0 100% !important;
-                align-self: stretch !important;
-                grid-column: 1 / -1 !important;
-                width: 100% !important;
-                min-width: 0 !important;
-                max-width: none !important;
-                margin: 0 0 16px 0 !important;
-                border-radius: 14px !important;
-                overflow: hidden !important;
-                box-shadow: 0 8px 24px rgba(15, 23, 42, .06) !important;
+                display:block!important; width:100%!important; min-width:0!important; max-width:none!important;
+                grid-column:1/-1!important; flex:0 0 100%!important; margin:0 0 16px!important;
+                border-radius:14px!important; overflow:hidden!important;
+                box-shadow:0 8px 24px rgba(15,23,42,.06)!important;
             }
-            .overview-combined-card > .bg-emerald-700 {
-                min-height: 42px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                padding: 10px 18px !important;
-                font-size: 15px !important;
-                letter-spacing: .04em !important;
-            }
-            .overview-combined-card .overflow-x-auto {
-                width: 100% !important;
-                max-width: none !important;
-                overflow-x: visible !important;
-            }
+            .overview-combined-card .overflow-x-auto { width:100%!important; max-width:none!important; overflow-x:visible!important; }
             .overview-combined-card table {
-                width: 100% !important;
-                min-width: 0 !important;
-                max-width: none !important;
-                table-layout: fixed !important;
-                border-collapse: separate !important;
-                border-spacing: 0 !important;
+                width:100%!important; min-width:0!important; max-width:none!important;
+                table-layout:fixed!important; border-collapse:collapse!important;
             }
-            .overview-combined-card table th {
-                padding: 12px 10px !important;
-                background: #f8fafc !important;
-                color: #475569 !important;
-                font-size: 11px !important;
-                font-weight: 900 !important;
-                line-height: 1.25 !important;
-                white-space: normal !important;
-                border-color: #e2e8f0 !important;
+            .overview-combined-card th,
+            .overview-combined-card td {
+                border:1px solid #e2e8f0!important; padding:12px 10px!important;
+                white-space:normal!important; overflow-wrap:anywhere!important;
             }
-            .overview-combined-card table td {
-                padding: 13px 10px !important;
-                font-size: 12px !important;
-                line-height: 1.3 !important;
-                white-space: normal !important;
-                overflow-wrap: anywhere !important;
-                border-color: #e2e8f0 !important;
+            .overview-combined-card thead th {
+                background:#f8fafc!important; color:#475569!important; font-size:11px!important;
+                font-weight:900!important; line-height:1.25!important;
             }
-            .overview-combined-details-cell {
-                padding: 0 !important;
-                background: #fff !important;
-                border-left: 1px solid #e2e8f0 !important;
-                border-right: 1px solid #e2e8f0 !important;
-                border-bottom: 1px solid #e2e8f0 !important;
+            .overview-info-title th {
+                padding:10px 14px!important; text-align:left!important;
+                background:linear-gradient(90deg,#f8fafc 0%,#f1f5f9 100%)!important;
+                color:#334155!important; font-size:11px!important; font-weight:900!important;
+                letter-spacing:.06em!important; text-transform:uppercase!important;
             }
-            .overview-combined-details-title {
-                display: flex !important;
-                align-items: center !important;
-                gap: 8px !important;
-                padding: 10px 16px !important;
-                border-bottom: 1px solid #e2e8f0 !important;
-                background: linear-gradient(90deg, #f8fafc 0%, #f1f5f9 100%) !important;
-                color: #334155 !important;
-                font-size: 11px !important;
-                font-weight: 900 !important;
-                text-transform: uppercase !important;
-                letter-spacing: .07em !important;
+            .overview-info-labels th {
+                background:#fff!important; color:#64748b!important; text-align:left!important;
+                font-size:9px!important; font-weight:900!important; letter-spacing:.06em!important;
+                text-transform:uppercase!important;
             }
-            .overview-combined-details-grid {
-                display: grid !important;
-                grid-template-columns: 1.35fr .75fr 1fr 1fr .7fr !important;
-                width: 100% !important;
-            }
-            .overview-combined-detail {
-                min-width: 0 !important;
-                min-height: 82px !important;
-                padding: 15px 18px !important;
-                text-align: left !important;
-                border-right: 1px solid #e2e8f0 !important;
-                background: #fff !important;
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-            }
-            .overview-combined-detail:last-child { border-right: 0 !important; }
-            .overview-combined-detail-label {
-                margin-bottom: 7px !important;
-                color: #64748b !important;
-                font-size: 9px !important;
-                font-weight: 900 !important;
-                text-transform: uppercase !important;
-                letter-spacing: .07em !important;
-            }
-            .overview-combined-detail-value {
-                color: #0f172a !important;
-                font-size: 13px !important;
-                font-weight: 800 !important;
-                line-height: 1.35 !important;
-                overflow-wrap: anywhere !important;
+            .overview-info-values td {
+                background:#fff!important; color:#0f172a!important; text-align:left!important;
+                font-size:13px!important; font-weight:800!important; vertical-align:middle!important;
             }
             #plantStatusBadge {
-                display: inline-flex !important;
-                width: fit-content !important;
-                align-items: center !important;
-                justify-content: center !important;
-                padding: 5px 10px !important;
-                border-radius: 999px !important;
-                background: #f1f5f9 !important;
+                display:inline-flex!important; width:fit-content!important; align-items:center!important;
+                justify-content:center!important; padding:5px 10px!important; border-radius:999px!important;
+                background:#f1f5f9!important;
             }
-            #plantStatusBadge.text-emerald-600 {
-                background: #ecfdf5 !important;
-                color: #059669 !important;
-            }
-            .overview-inverter-full-row {
-                display: block !important;
-                width: 100% !important;
-                max-width: none !important;
-            }
-            .overview-inverter-full-row > .bg-white {
-                width: 100% !important;
-                max-width: none !important;
-            }
-            @media (max-width: 900px) {
-                .overview-combined-card .overflow-x-auto { overflow-x: auto !important; }
-                .overview-combined-card table { min-width: 760px !important; }
-                .overview-combined-details-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
-                .overview-combined-detail { border-bottom: 1px solid #e2e8f0 !important; }
-                .overview-combined-detail:nth-child(2n) { border-right: 0 !important; }
-            }
-            @media (max-width: 520px) {
-                .overview-combined-details-grid { grid-template-columns: 1fr !important; }
-                .overview-combined-detail { min-height: 68px !important; border-right: 0 !important; }
+            #plantStatusBadge.text-emerald-600 { background:#ecfdf5!important; color:#059669!important; }
+            .overview-inverter-full-row { display:block!important; width:100%!important; max-width:none!important; }
+            .overview-inverter-full-row > .bg-white { width:100%!important; max-width:none!important; }
+            @media (max-width:900px) {
+                .overview-combined-card .overflow-x-auto { overflow-x:auto!important; }
+                .overview-combined-card table { min-width:900px!important; }
             }
         `;
         document.head.appendChild(style);
     }
 
-    function makeDetail(label, valueNode) {
-        const item = document.createElement('div');
-        item.className = 'overview-combined-detail';
-        const labelEl = document.createElement('div');
-        labelEl.className = 'overview-combined-detail-label';
-        labelEl.textContent = label;
-        const valueEl = document.createElement('div');
-        valueEl.className = 'overview-combined-detail-value';
-        valueEl.appendChild(valueNode);
-        item.append(labelEl, valueEl);
-        return item;
-    }
-
     function moveToFullWidthParent(overviewCard, inverterRow) {
         document.querySelectorAll('#forcedOverviewInfoRow, .overview-table-info-row').forEach(wrapper => {
-            if (wrapper.contains(overviewCard) && wrapper.parentElement) {
-                wrapper.parentElement.insertBefore(overviewCard, wrapper);
-            }
+            if (wrapper.contains(overviewCard) && wrapper.parentElement) wrapper.parentElement.insertBefore(overviewCard, wrapper);
             if (!wrapper.children.length) wrapper.remove();
         });
 
-        if (inverterRow?.parentElement && overviewCard.parentElement !== inverterRow.parentElement) {
+        if (inverterRow?.parentElement) {
             inverterRow.parentElement.insertBefore(overviewCard, inverterRow);
-        } else if (inverterRow?.parentElement && overviewCard.nextElementSibling !== inverterRow) {
-            inverterRow.parentElement.insertBefore(overviewCard, inverterRow);
+            inverterRow.parentElement.style.setProperty('width', '100%', 'important');
+            inverterRow.parentElement.style.setProperty('max-width', 'none', 'important');
         }
 
-        overviewCard.classList.remove(
-            'forced-plant-overview-card',
-            'overview-main-table-card',
-            'col-span-9',
-            'lg:col-span-9',
-            'w-3/4',
-            'max-w-4xl',
-            'max-w-5xl',
-            'max-w-6xl'
-        );
-
-        const parent = overviewCard.parentElement;
-        if (parent) {
-            parent.style.setProperty('width', '100%', 'important');
-            parent.style.setProperty('max-width', 'none', 'important');
-            parent.style.setProperty('align-items', 'stretch', 'important');
-        }
+        overviewCard.classList.remove('col-span-9', 'lg:col-span-9', 'w-3/4', 'max-w-4xl', 'max-w-5xl', 'max-w-6xl');
+        overviewCard.classList.add('overview-combined-card');
     }
 
-    function combinePlantInformation() {
+    function collectValues(plantCard) {
+        const values = {};
+        plantCard?.querySelectorAll('.flex.justify-between').forEach(row => {
+            const children = row.querySelectorAll(':scope > span');
+            if (children.length >= 2) values[(children[0].textContent || '').trim()] = children[1];
+        });
+        return values;
+    }
+
+    function appendPlantInformationRows(table, values) {
+        ['overviewPlantDetailsRow', 'overviewPlantLabelsRow', 'overviewPlantValuesRow'].forEach(id => document.getElementById(id)?.remove());
+
+        const tbody = table.tBodies[0] || table.createTBody();
+        const titleRow = document.createElement('tr');
+        titleRow.id = 'overviewPlantDetailsRow';
+        titleRow.className = 'overview-info-title';
+        const titleCell = document.createElement('th');
+        titleCell.colSpan = 6;
+        titleCell.innerHTML = '<i class="fa-solid fa-circle-info text-emerald-600 mr-2"></i>Plant Information';
+        titleRow.appendChild(titleCell);
+
+        const labels = ['Name', 'Capacity', 'Location', 'Service Number', 'Status'];
+        const spans = [2, 1, 1, 1, 1];
+
+        const labelRow = document.createElement('tr');
+        labelRow.id = 'overviewPlantLabelsRow';
+        labelRow.className = 'overview-info-labels';
+
+        const valueRow = document.createElement('tr');
+        valueRow.id = 'overviewPlantValuesRow';
+        valueRow.className = 'overview-info-values';
+
+        labels.forEach((label, index) => {
+            const th = document.createElement('th');
+            th.colSpan = spans[index];
+            th.textContent = label;
+            labelRow.appendChild(th);
+
+            const td = document.createElement('td');
+            td.colSpan = spans[index];
+            td.appendChild(values[label] || document.createTextNode('--'));
+            valueRow.appendChild(td);
+        });
+
+        tbody.append(titleRow, labelRow, valueRow);
+    }
+
+    function applyLayout() {
         addStyles();
         const overviewCard = findOverviewCard();
         const table = overviewCard?.querySelector('table');
@@ -223,36 +145,11 @@
         if (!overviewCard || !table) return;
 
         moveToFullWidthParent(overviewCard, inverterRow);
-        overviewCard.classList.add('overview-combined-card');
-        overviewCard.style.cssText += ';width:100% !important;min-width:0 !important;max-width:none !important;flex-basis:100% !important;align-self:stretch !important;';
 
-        if (!document.getElementById('overviewPlantDetailsRow')) {
-            const plantCard = findPlantInformationCard();
-            if (plantCard && overviewCard !== plantCard) {
-                const values = {};
-                plantCard.querySelectorAll('.flex.justify-between').forEach(row => {
-                    const children = row.querySelectorAll(':scope > span');
-                    if (children.length >= 2) values[(children[0].textContent || '').trim()] = children[1];
-                });
-
-                const detailsRow = document.createElement('tr');
-                detailsRow.id = 'overviewPlantDetailsRow';
-                const detailsCell = document.createElement('td');
-                detailsCell.colSpan = Math.max(1, table.tHead?.rows[0]?.cells.length || 6);
-                detailsCell.className = 'overview-combined-details-cell';
-                const title = document.createElement('div');
-                title.className = 'overview-combined-details-title';
-                title.innerHTML = '<i class="fa-solid fa-circle-info text-emerald-600"></i><span>Plant Information</span>';
-                const grid = document.createElement('div');
-                grid.className = 'overview-combined-details-grid';
-                ['Name', 'Capacity', 'Location', 'Service Number', 'Status'].forEach(label => {
-                    grid.appendChild(makeDetail(label, values[label] || document.createTextNode('--'));
-                });
-                detailsCell.append(title, grid);
-                detailsRow.appendChild(detailsCell);
-                (table.tBodies[0] || table.createTBody()).appendChild(detailsRow);
-                plantCard.remove();
-            }
+        const plantCard = findPlantInformationCard();
+        if (plantCard && plantCard !== overviewCard) {
+            appendPlantInformationRows(table, collectValues(plantCard));
+            plantCard.remove();
         }
 
         if (inverterRow) inverterRow.classList.add('overview-inverter-full-row');
@@ -266,11 +163,11 @@
     }
 
     function apply() {
-        combinePlantInformation();
+        applyLayout();
         startDataFallbacks();
     }
 
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply, { once: true });
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply, { once:true });
     else apply();
 
     setTimeout(apply, 250);
