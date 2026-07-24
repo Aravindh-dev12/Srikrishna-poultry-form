@@ -18,12 +18,14 @@
         const start = new Date(today);
         start.setHours(0, 0, 0, 0);
         start.setDate(start.getDate() - start.getDay());
+
         return Array.from({ length: 7 }, (_, index) => {
-            const d = new Date(start.getTime() + index * DAY_MS);
+            const date = new Date(start.getTime() + index * DAY_MS);
             return {
-                key: localDateKey(d),
-                label: d.toLocaleDateString('en-IN', { weekday: 'short' }),
-                short: d.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })
+                key: localDateKey(date),
+                day: date.toLocaleDateString('en-IN', { weekday: 'short' }),
+                axis: date.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit' }),
+                full: date.toLocaleDateString('en-IN', { weekday: 'short', day: '2-digit', month: 'short' })
             };
         });
     }
@@ -35,9 +37,11 @@
     function findGenerationChart() {
         const canvas = document.getElementById('genChart');
         if (!canvas || typeof Chart === 'undefined') return null;
+
         if (typeof Chart.getChart === 'function') {
             return Chart.getChart(canvas) || Chart.getChart('genChart') || null;
         }
+
         const instances = Chart.instances || {};
         const charts = Array.isArray(instances) ? instances : Object.values(instances);
         return charts.find(chart => {
@@ -48,8 +52,8 @@
 
     function readNumericText(id) {
         const text = document.getElementById(id)?.textContent || '';
-        const n = parseFloat(text.replace(/,/g, '').replace(/[^0-9.\-]/g, ''));
-        return Number.isFinite(n) ? n : 0;
+        const value = parseFloat(text.replace(/,/g, '').replace(/[^0-9.\-]/g, ''));
+        return Number.isFinite(value) ? value : 0;
     }
 
     function liveTodayKwh() {
@@ -58,17 +62,16 @@
 
     function expectedDailyFromConfig() {
         const plantId = currentPlantId();
-        const cfg = (window.SIGNED_PLANT_CONFIG && window.SIGNED_PLANT_CONFIG[plantId]) || {};
-        const cap = parseFloat(cfg.capacity || 0);
-        return Number.isFinite(cap) && cap > 0 ? cap * 1000 * 0.8 * 5 : 1000;
+        const config = (window.SIGNED_PLANT_CONFIG && window.SIGNED_PLANT_CONFIG[plantId]) || {};
+        const capacity = parseFloat(config.capacity || 0);
+        return Number.isFinite(capacity) && capacity > 0 ? capacity * 1000 * 0.8 * 5 : 1000;
     }
 
     function niceMax(value) {
         if (!Number.isFinite(value) || value <= 0) return 1000;
         const magnitude = Math.pow(10, Math.floor(Math.log10(value)));
         const normalized = value / magnitude;
-        const rounded = normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10;
-        return rounded * magnitude;
+        return (normalized <= 2 ? 2 : normalized <= 5 ? 5 : 10) * magnitude;
     }
 
     function normalizeRows(rows) {
@@ -83,17 +86,44 @@
         return map;
     }
 
-    function setTitle(days, total) {
-        const canvas = document.getElementById('genChart');
-        const card = canvas?.closest('.bg-white');
-        const title = card?.querySelector('h4');
-        if (!title) return;
-        const formattedTotal = Number(total || 0).toLocaleString('en-IN', {
-            minimumFractionDigits: 1,
-            maximumFractionDigits: 1
+    function formatKwh(value, maximumFractionDigits = 1) {
+        return Number(value || 0).toLocaleString('en-IN', {
+            minimumFractionDigits: 0,
+            maximumFractionDigits
         });
-        title.textContent = `Generation Week (${days[0].short} - ${days[6].short}) · ${formattedTotal} kWh`;
     }
+
+    function setTitle(days, total) {
+        const card = document.getElementById('genChart')?.closest('.bg-white');
+        const title = card?.querySelector('h4');
+        if (title) {
+            title.textContent = `Generation Week (${days[0].full} - ${days[6].full}) · Total ${formatKwh(total)} kWh`;
+        }
+    }
+
+    const dayValuePlugin = {
+        id: 'weeklyDayValues',
+        afterDatasetsDraw(chart) {
+            const ctx = chart.ctx;
+            const dataset = chart.data.datasets?.[0];
+            const meta = chart.getDatasetMeta(0);
+            if (!dataset || !meta || meta.hidden) return;
+
+            ctx.save();
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'bottom';
+            ctx.font = '700 10px Arial, sans-serif';
+            ctx.fillStyle = '#334155';
+
+            meta.data.forEach((bar, index) => {
+                const value = Number(dataset.data[index] || 0);
+                if (value <= 0) return;
+                const y = Math.max(chart.chartArea.top + 12, bar.y - 5);
+                ctx.fillText(`${formatKwh(value)} kWh`, bar.x, y);
+            });
+            ctx.restore();
+        }
+    };
 
     function applyWeeklyChart() {
         const chart = findGenerationChart();
@@ -106,7 +136,7 @@
             dataMap.set(todayKey, Math.max(dataMap.get(todayKey) || 0, liveToday));
         }
 
-        const labels = days.map(day => day.label);
+        const labels = days.map(day => day.axis);
         const values = days.map(day => Number((dataMap.get(day.key) || 0).toFixed(2)));
         const total = values.reduce((sum, value) => sum + Math.max(0, value), 0);
         const expected = Math.max(
@@ -114,7 +144,7 @@
             ...(weeklyPayload.data || []).map(row => Number(row.expected || 0)),
             1000
         );
-        const suggestedMax = niceMax(Math.max(...values, expected) * 1.12);
+        const suggestedMax = niceMax(Math.max(...values, expected) * 1.2);
 
         setTitle(days, total);
 
@@ -130,24 +160,32 @@
         chart.config.type = 'bar';
         chart.data.labels = labels;
         chart.data.datasets = [{
-            label: 'Current week generation (kWh)',
+            label: 'Day-wise generation',
             data: values,
             backgroundColor: '#059669',
             borderRadius: 6,
             barPercentage: 0.58,
             categoryPercentage: 0.72
         }];
+
+        chart.config.plugins = Array.isArray(chart.config.plugins) ? chart.config.plugins : [];
+        if (!chart.config.plugins.some(plugin => plugin?.id === dayValuePlugin.id)) {
+            chart.config.plugins.push(dayValuePlugin);
+        }
+
         chart.options.plugins = chart.options.plugins || {};
         chart.options.plugins.legend = { display: false };
         chart.options.plugins.tooltip = {
             callbacks: {
-                label: context => `${Number(context.raw || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })} kWh`
+                title: items => days[items[0]?.dataIndex]?.full || '',
+                label: context => `Generation: ${formatKwh(context.raw, 2)} kWh`
             }
         };
+        chart.options.layout = { padding: { top: 22 } };
         chart.options.scales = chart.options.scales || {};
         chart.options.scales.x = {
             grid: { display: false },
-            title: { display: true, text: 'Current week' },
+            title: { display: true, text: 'Day-wise generation' },
             ticks: { autoSkip: false, maxRotation: 0, minRotation: 0, font: { size: 11, weight: '700' } }
         };
         chart.options.scales.y = {
@@ -163,11 +201,12 @@
     function fetchDailyFallback(dateKey) {
         const plantId = currentPlantId();
         if (!plantId) return Promise.resolve(0);
+
         return fetch(`api.php?action=get_overview_hourly&plant_id=${encodeURIComponent(plantId)}&date=${encodeURIComponent(dateKey)}`, { cache: 'no-store' })
-            .then(res => res.json())
-            .then(res => {
-                if (!res || res.status !== 'success' || !res.data) return 0;
-                const generation = Array.isArray(res.data.generation) ? res.data.generation : [];
+            .then(response => response.json())
+            .then(response => {
+                if (!response || response.status !== 'success' || !response.data) return 0;
+                const generation = Array.isArray(response.data.generation) ? response.data.generation : [];
                 return generation.reduce((sum, value) => sum + Math.max(0, Number(value || 0)), 0);
             })
             .catch(() => 0);
@@ -180,9 +219,7 @@
         const todayKey = localDateKey(new Date());
         const elapsedDays = weekDates().filter(day => day.key <= todayKey);
 
-        Promise.all(elapsedDays.map(day =>
-            fetchDailyFallback(day.key).then(value => ({ day, value }))
-        ))
+        Promise.all(elapsedDays.map(day => fetchDailyFallback(day.key).then(value => ({ day, value }))))
             .then(results => {
                 const byDate = new Map((weeklyPayload.data || []).map(row => [row.date, row]));
 
@@ -192,12 +229,7 @@
                     if (existing) {
                         existing.actual = Math.max(Number(existing.actual || 0), value);
                     } else {
-                        const row = {
-                            date: day.key,
-                            day: day.label,
-                            actual: value,
-                            expected: expectedDailyFromConfig()
-                        };
+                        const row = { date: day.key, day: day.day, actual: value, expected: expectedDailyFromConfig() };
                         weeklyPayload.data.push(row);
                         byDate.set(day.key, row);
                     }
@@ -223,16 +255,15 @@
         }
 
         fetch(`api.php?action=get_weekly_energy&plant_id=${encodeURIComponent(plantId)}`, { cache: 'no-store' })
-            .then(res => res.json())
-            .then(res => {
-                weeklyPayload = res && res.status === 'success'
-                    ? { ...res, data: Array.isArray(res.data) ? res.data : [] }
+            .then(response => response.json())
+            .then(response => {
+                weeklyPayload = response && response.status === 'success'
+                    ? { ...response, data: Array.isArray(response.data) ? response.data : [] }
                     : { status: 'success', data: [] };
                 applyWeeklyChart();
                 refreshWeekFromInverters();
             })
             .catch(() => {
-                weeklyPayload = weeklyPayload || { status: 'success', data: [] };
                 applyWeeklyChart();
                 refreshWeekFromInverters();
             });
@@ -241,13 +272,9 @@
     function start() {
         applyWeeklyChart();
         loadWeeklyGeneration(true);
-
         setTimeout(applyWeeklyChart, 250);
         setTimeout(applyWeeklyChart, 1000);
         setTimeout(refreshWeekFromInverters, 1500);
-
-        // The original overview script also updates this canvas with hourly data.
-        // Re-apply the weekly dataset frequently so the weekly chart remains visible.
         setInterval(applyWeeklyChart, 500);
         setInterval(() => loadWeeklyGeneration(false), 60000);
     }
