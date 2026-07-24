@@ -61,8 +61,62 @@ ob_start(function ($html) use ($signedPlantIdJson, $signedRoleJson, $signedConfi
         $injection .= "\n<link rel=\"stylesheet\" href=\"assets/overview_inverter_ui.css?v=20260721-5\">";
         $injection .= "\n<link rel=\"stylesheet\" href=\"assets/overview_compact_headers.css?v=20260721-2\">";
         $injection .= "\n<script src=\"assets/inverter3_fix.js?v=20260721-4\"></script>";
-        $injection .= "\n<script src=\"assets/overview_ui_runtime_fix.js?v=20260724-5\"></script>";
+        $injection .= "\n<script src=\"assets/overview_ui_runtime_fix.js?v=20260724-6\"></script>";
         $injection .= "\n<script src=\"assets/overview_week_generation.js?v=20260724-2\"></script>";
+        $injection .= <<<'HTML'
+<script>
+(function () {
+    function forceOverviewFullWidth() {
+        const overviewCard = (document.getElementById('vcb_time') || document.getElementById('vcb_power'))?.closest('.bg-white');
+        const inverterPanel = document.getElementById('inverterGrid')?.closest('.bg-white');
+        const inverterRow = inverterPanel?.parentElement;
+        if (!overviewCard || !inverterPanel || !inverterRow?.parentElement) return;
+
+        if (overviewCard.parentElement !== inverterRow.parentElement || overviewCard.nextElementSibling !== inverterRow) {
+            inverterRow.parentElement.insertBefore(overviewCard, inverterRow);
+        }
+
+        const parent = inverterRow.parentElement;
+        parent.style.setProperty('display', 'flex', 'important');
+        parent.style.setProperty('flex-direction', 'column', 'important');
+        parent.style.setProperty('align-items', 'stretch', 'important');
+        parent.style.setProperty('width', '100%', 'important');
+        parent.style.setProperty('max-width', 'none', 'important');
+
+        [overviewCard, inverterRow, inverterPanel].forEach(el => {
+            el.style.setProperty('width', '100%', 'important');
+            el.style.setProperty('min-width', '0', 'important');
+            el.style.setProperty('max-width', 'none', 'important');
+            el.style.setProperty('flex', '0 0 auto', 'important');
+            el.style.setProperty('align-self', 'stretch', 'important');
+        });
+
+        overviewCard.classList.remove('w-3/4', 'max-w-4xl', 'max-w-5xl', 'max-w-6xl', 'col-span-9', 'lg:col-span-9');
+        overviewCard.querySelector('.overflow-x-auto')?.style.setProperty('width', '100%', 'important');
+        const table = overviewCard.querySelector('table');
+        if (table) {
+            table.style.setProperty('width', '100%', 'important');
+            table.style.setProperty('min-width', '0', 'important');
+            table.style.setProperty('max-width', 'none', 'important');
+            table.style.setProperty('table-layout', 'fixed', 'important');
+        }
+    }
+
+    const start = () => {
+        forceOverviewFullWidth();
+        setTimeout(forceOverviewFullWidth, 250);
+        setTimeout(forceOverviewFullWidth, 1000);
+        setTimeout(forceOverviewFullWidth, 2500);
+        window.addEventListener('resize', forceOverviewFullWidth);
+        const main = document.querySelector('main');
+        if (main) new MutationObserver(forceOverviewFullWidth).observe(main, { childList: true, subtree: true, attributes: true });
+    };
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start, { once: true });
+    else start();
+})();
+</script>
+HTML;
     }
 
     if ($currentPage === 'sld.php') {
