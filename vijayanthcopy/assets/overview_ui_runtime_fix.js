@@ -48,14 +48,8 @@
                 background:#f8fafc!important; color:#475569!important; font-size:11px!important;
                 font-weight:900!important; line-height:1.25!important;
             }
-            .overview-info-title th {
-                padding:10px 14px!important; text-align:left!important;
-                background:linear-gradient(90deg,#f8fafc 0%,#f1f5f9 100%)!important;
-                color:#334155!important; font-size:11px!important; font-weight:900!important;
-                letter-spacing:.06em!important; text-transform:uppercase!important;
-            }
             .overview-info-labels th {
-                background:#fff!important; color:#64748b!important; text-align:left!important;
+                background:#f8fafc!important; color:#64748b!important; text-align:left!important;
                 font-size:9px!important; font-weight:900!important; letter-spacing:.06em!important;
                 text-transform:uppercase!important;
             }
@@ -109,14 +103,6 @@
         ['overviewPlantDetailsRow', 'overviewPlantLabelsRow', 'overviewPlantValuesRow'].forEach(id => document.getElementById(id)?.remove());
 
         const tbody = table.tBodies[0] || table.createTBody();
-        const titleRow = document.createElement('tr');
-        titleRow.id = 'overviewPlantDetailsRow';
-        titleRow.className = 'overview-info-title';
-        const titleCell = document.createElement('th');
-        titleCell.colSpan = 6;
-        titleCell.innerHTML = '<i class="fa-solid fa-circle-info text-emerald-600 mr-2"></i>Plant Information';
-        titleRow.appendChild(titleCell);
-
         const labels = ['Name', 'Capacity', 'Location', 'Service Number', 'Status'];
         const spans = [2, 1, 1, 1, 1];
 
@@ -140,7 +126,7 @@
             valueRow.appendChild(td);
         });
 
-        tbody.append(titleRow, labelRow, valueRow);
+        tbody.append(labelRow, valueRow);
     }
 
     function syncOverviewWidth() {
@@ -175,6 +161,7 @@
         if (!overviewCard || !table) return;
 
         moveToFullWidthParent(overviewCard, inverterRow);
+        document.getElementById('overviewPlantDetailsRow')?.remove();
 
         const plantCard = findPlantInformationCard();
         if (plantCard && plantCard !== overviewCard) {
