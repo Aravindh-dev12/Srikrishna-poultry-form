@@ -1,145 +1,12 @@
 (function () {
     if (!/overview\.php$/i.test(window.location.pathname)) return;
 
-    let scheduled = false;
+    let layoutApplied = false;
+    let dataStarted = false;
 
-    function ensureLayoutStyles() {
-        if (document.getElementById('overviewBelowInverterStyles')) return;
-
-        const style = document.createElement('style');
-        style.id = 'overviewBelowInverterStyles';
-        style.textContent = `
-            .overview-inverter-row-fixed {
-                display: block !important;
-                width: 100% !important;
-                margin-bottom: 16px !important;
-            }
-            .overview-inverter-row-fixed > .overview-inverter-panel-fixed {
-                width: 100% !important;
-                max-width: none !important;
-            }
-            .overview-plant-info-below {
-                display: block !important;
-                width: 100% !important;
-                max-width: none !important;
-                margin: 0 0 16px 0 !important;
-                padding: 0 !important;
-                overflow: hidden !important;
-                border-radius: 12px !important;
-            }
-            .overview-plant-info-below > h3 {
-                margin: 0 !important;
-                padding: 11px 16px !important;
-                border-bottom: 1px solid #e2e8f0 !important;
-                background: #f8fafc !important;
-                color: #1e293b !important;
-                font-size: 13px !important;
-                font-weight: 900 !important;
-                letter-spacing: .04em !important;
-                text-transform: uppercase !important;
-            }
-            .overview-plant-info-below > .space-y-2 {
-                display: grid !important;
-                grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
-                gap: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-            .overview-plant-info-below > .space-y-2 > .flex.justify-between {
-                display: flex !important;
-                flex-direction: column !important;
-                justify-content: center !important;
-                align-items: flex-start !important;
-                gap: 5px !important;
-                min-width: 0 !important;
-                min-height: 72px !important;
-                padding: 12px 16px !important;
-                margin: 0 !important;
-                border: 0 !important;
-                border-right: 1px solid #e2e8f0 !important;
-                background: #fff !important;
-            }
-            .overview-plant-info-below > .space-y-2 > .flex.justify-between:last-child {
-                border-right: 0 !important;
-            }
-            .overview-plant-info-below > .space-y-2 > .flex.justify-between span:first-child {
-                color: #64748b !important;
-                font-size: 10px !important;
-                font-weight: 800 !important;
-                letter-spacing: .04em !important;
-                text-transform: uppercase !important;
-            }
-            .overview-plant-info-below > .space-y-2 > .flex.justify-between span:last-child {
-                color: #1e293b !important;
-                font-size: 12px !important;
-                font-weight: 800 !important;
-                text-align: left !important;
-                overflow-wrap: anywhere !important;
-            }
-            @media (max-width: 900px) {
-                .overview-plant-info-below > .space-y-2 {
-                    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-                }
-                .overview-plant-info-below > .space-y-2 > .flex.justify-between {
-                    border-bottom: 1px solid #e2e8f0 !important;
-                }
-            }
-            @media (max-width: 520px) {
-                .overview-plant-info-below > .space-y-2 {
-                    grid-template-columns: 1fr !important;
-                }
-                .overview-plant-info-below > .space-y-2 > .flex.justify-between {
-                    min-height: 60px !important;
-                    border-right: 0 !important;
-                }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    function numberFromText(text) {
-        const match = String(text || '').replace(/,/g, '').match(/-?\d+(?:\.\d+)?/);
-        return match ? Number(match[0]) : null;
-    }
-
-    function isRealInverterCard(card) {
-        const label = card.querySelector('p:first-of-type')?.textContent || '';
-        return /\binv(?:erter)?\s*0*\d+\b/i.test(label.trim());
-    }
-
-    function normalizePower(card) {
-        const powerLine = card.querySelector('p:nth-of-type(2)');
-        if (!powerLine) return;
-        let value = numberFromText(powerLine.textContent);
-        if (!Number.isFinite(value)) return;
-        if (Math.abs(value) > 10000) value /= 1000;
-        const decimals = Math.abs(value) >= 1000 ? 0 : 1;
-        const expected = value.toFixed(decimals);
-        const valueEl = powerLine.querySelector('.overview-power-value');
-        const unitEl = powerLine.querySelector('.overview-power-unit');
-        if (!valueEl || !unitEl || valueEl.textContent !== expected) {
-            powerLine.innerHTML = `<span class="overview-power-value">${expected}</span><span class="overview-power-unit">kW</span>`;
-        }
-    }
-
-    function fixInverterGrid() {
-        const grid = document.getElementById('inverterGrid');
-        if (!grid) return;
-
-        const cards = Array.from(grid.children).filter(card => !card.classList.contains('col-span-full'));
-        cards.forEach(card => {
-            if (!isRealInverterCard(card)) {
-                card.remove();
-                return;
-            }
-            card.classList.add('overview-inverter-card');
-            normalizePower(card);
-        });
-
-        const validCount = Array.from(grid.children)
-            .filter(card => !card.classList.contains('col-span-full') && isRealInverterCard(card)).length;
-        const count = document.getElementById('overviewInvCount');
-        if (count && count.textContent !== String(validCount)) count.textContent = String(validCount);
+    function findOverviewCard() {
+        const marker = document.getElementById('vcb_time') || document.getElementById('vcb_power');
+        return marker?.closest('.bg-white') || null;
     }
 
     function findPlantInformationCard() {
@@ -149,85 +16,145 @@
         return heading?.closest('.bg-white') || null;
     }
 
-    function restorePlantCardFromMergedRow() {
-        const mergedRow = document.getElementById('overviewPlantDetailsRow');
-        if (!mergedRow) return null;
-
-        const labels = ['Name', 'Capacity', 'Location', 'Service Number', 'Status'];
-        const valueBlocks = Array.from(mergedRow.querySelectorAll('.grid > div'));
-        const card = document.createElement('div');
-        card.className = 'bg-white rounded-lg shadow-sm border border-gray-200 p-4';
-
-        const heading = document.createElement('h3');
-        heading.className = 'text-sm font-bold text-gray-700 mb-3 border-b pb-2';
-        heading.textContent = 'Plant Information';
-
-        const details = document.createElement('div');
-        details.className = 'space-y-2 text-xs';
-
-        labels.forEach((label, index) => {
-            const row = document.createElement('div');
-            row.className = 'flex justify-between border-b border-gray-100 pb-1';
-            const labelEl = document.createElement('span');
-            labelEl.className = 'text-gray-500';
-            labelEl.textContent = label;
-            const valueEl = document.createElement('span');
-            valueEl.className = 'font-semibold text-gray-800';
-
-            const sourceValue = valueBlocks[index]?.querySelector('div:last-child');
-            if (sourceValue) {
-                while (sourceValue.firstChild) valueEl.appendChild(sourceValue.firstChild);
-            } else {
-                valueEl.textContent = '--';
-            }
-            if (label === 'Status' && !valueEl.id) valueEl.id = 'plantStatusBadge';
-
-            row.append(labelEl, valueEl);
-            details.appendChild(row);
-        });
-
-        card.append(heading, details);
-        mergedRow.remove();
-        return card;
+    function findInverterRow() {
+        return document.getElementById('inverterGrid')?.closest('.grid.grid-cols-12') || null;
     }
 
-    function positionPlantInformationBelowInverters() {
-        ensureLayoutStyles();
+    function addCombinedTableStyles() {
+        if (document.getElementById('overviewCombinedTableStyles')) return;
+        const style = document.createElement('style');
+        style.id = 'overviewCombinedTableStyles';
+        style.textContent = `
+            .overview-combined-card { width: 100% !important; }
+            .overview-combined-details-cell { padding: 0 !important; background: #fff !important; }
+            .overview-combined-details-title {
+                display: flex; align-items: center; gap: 8px;
+                padding: 9px 14px; border-bottom: 1px solid #e2e8f0;
+                background: #f8fafc; color: #334155;
+                font-size: 11px; font-weight: 900; text-transform: uppercase;
+                letter-spacing: .06em;
+            }
+            .overview-combined-details-grid {
+                display: grid; grid-template-columns: repeat(5, minmax(0, 1fr));
+            }
+            .overview-combined-detail {
+                min-width: 0; padding: 12px 14px; text-align: left;
+                border-right: 1px solid #e2e8f0; background: #fff;
+            }
+            .overview-combined-detail:last-child { border-right: 0; }
+            .overview-combined-detail-label {
+                margin-bottom: 5px; color: #64748b; font-size: 9px;
+                font-weight: 800; text-transform: uppercase; letter-spacing: .05em;
+            }
+            .overview-combined-detail-value {
+                color: #1e293b; font-size: 11px; font-weight: 800;
+                overflow-wrap: anywhere;
+            }
+            .overview-inverter-full-row { display: block !important; width: 100% !important; }
+            .overview-inverter-full-row > .bg-white { width: 100% !important; max-width: none !important; }
+            @media (max-width: 900px) {
+                .overview-combined-details-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+                .overview-combined-detail { border-bottom: 1px solid #e2e8f0; }
+            }
+            @media (max-width: 520px) {
+                .overview-combined-details-grid { grid-template-columns: 1fr; }
+                .overview-combined-detail { border-right: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
 
-        const inverterGrid = document.getElementById('inverterGrid');
-        const inverterRow = inverterGrid?.closest('.grid.grid-cols-12');
-        const inverterPanel = inverterGrid?.closest('.bg-white');
-        if (!inverterRow || !inverterPanel) return;
+    function makeDetail(label, valueNode) {
+        const item = document.createElement('div');
+        item.className = 'overview-combined-detail';
 
-        let plantCard = findPlantInformationCard();
-        if (!plantCard) plantCard = restorePlantCardFromMergedRow();
-        if (!plantCard) return;
+        const labelEl = document.createElement('div');
+        labelEl.className = 'overview-combined-detail-label';
+        labelEl.textContent = label;
 
-        inverterRow.classList.add('overview-inverter-row-fixed');
-        inverterPanel.classList.add('overview-inverter-panel-fixed');
-        plantCard.classList.add('overview-plant-info-below');
+        const valueEl = document.createElement('div');
+        valueEl.className = 'overview-combined-detail-value';
+        valueEl.appendChild(valueNode);
 
-        if (plantCard.parentElement !== inverterRow.parentElement || plantCard.previousElementSibling !== inverterRow) {
-            inverterRow.insertAdjacentElement('afterend', plantCard);
-        }
+        item.append(labelEl, valueEl);
+        return item;
+    }
+
+    function combinePlantInformation() {
+        if (layoutApplied) return;
+        addCombinedTableStyles();
+
+        const overviewCard = findOverviewCard();
+        const plantCard = findPlantInformationCard();
+        const table = overviewCard?.querySelector('table');
+        if (!overviewCard || !plantCard || !table || overviewCard === plantCard) return;
+
+        const values = {};
+        plantCard.querySelectorAll('.flex.justify-between').forEach(row => {
+            const children = row.querySelectorAll(':scope > span');
+            if (children.length < 2) return;
+            values[(children[0].textContent || '').trim()] = children[1];
+        });
+
+        const detailsRow = document.createElement('tr');
+        detailsRow.id = 'overviewPlantDetailsRow';
+        const detailsCell = document.createElement('td');
+        detailsCell.colSpan = Math.max(1, table.tHead?.rows[0]?.cells.length || 6);
+        detailsCell.className = 'overview-combined-details-cell border';
+
+        const title = document.createElement('div');
+        title.className = 'overview-combined-details-title';
+        title.innerHTML = '<i class="fa-solid fa-circle-info text-emerald-600"></i><span>Plant Information</span>';
+
+        const grid = document.createElement('div');
+        grid.className = 'overview-combined-details-grid';
+        ['Name', 'Capacity', 'Location', 'Service Number', 'Status'].forEach(label => {
+            const node = values[label] || document.createTextNode('--');
+            grid.appendChild(makeDetail(label, node));
+        });
+
+        detailsCell.append(title, grid);
+        detailsRow.appendChild(detailsCell);
+        (table.tBodies[0] || table.createTBody()).appendChild(detailsRow);
+
+        overviewCard.classList.add('overview-combined-card');
+        plantCard.remove();
+
+        const inverterRow = findInverterRow();
+        if (inverterRow) inverterRow.classList.add('overview-inverter-full-row');
 
         document.querySelectorAll('#forcedOverviewInfoRow, .overview-table-info-row').forEach(wrapper => {
-            const overviewCard = wrapper.querySelector('#vcb_time')?.closest('.bg-white');
-            if (overviewCard && wrapper.parentElement) wrapper.parentElement.insertBefore(overviewCard, wrapper);
+            if (overviewCard.parentElement === wrapper && wrapper.parentElement) {
+                wrapper.parentElement.insertBefore(overviewCard, wrapper);
+            }
             if (!wrapper.children.length) wrapper.remove();
         });
+
+        layoutApplied = true;
+    }
+
+    function startDataFallbacks() {
+        if (dataStarted) return;
+        dataStarted = true;
+
+        // The page already opens its WebSocket. These loaders provide cached/latest
+        // values immediately and hourly chart data when the socket is slow or offline.
+        try {
+            if (typeof window.loadLatestSnapshot === 'function') window.loadLatestSnapshot();
+        } catch (error) {
+            console.warn('[Overview] Latest snapshot load failed:', error);
+        }
+
+        try {
+            if (typeof window.loadOverviewHourly === 'function') window.loadOverviewHourly();
+        } catch (error) {
+            console.warn('[Overview] Hourly data load failed:', error);
+        }
     }
 
     function apply() {
-        scheduled = false;
-        fixInverterGrid();
-        positionPlantInformationBelowInverters();
-    }
-
-    function schedule() {
-        if (scheduled) return;
-        scheduled = true;
-        requestAnimationFrame(apply);
+        combinePlantInformation();
+        startDataFallbacks();
     }
 
     if (document.readyState === 'loading') {
@@ -236,18 +163,8 @@
         apply();
     }
 
-    const startObserver = () => {
-        const main = document.querySelector('main');
-        if (!main) {
-            setTimeout(startObserver, 250);
-            return;
-        }
-        new MutationObserver(schedule).observe(main, { childList: true, subtree: true });
-        schedule();
-    };
-
-    startObserver();
-    setTimeout(apply, 500);
-    setTimeout(apply, 1500);
-    setTimeout(apply, 3000);
+    // Retry briefly because the script is injected after the page and other UI scripts.
+    setTimeout(apply, 250);
+    setTimeout(apply, 1000);
+    setTimeout(apply, 2500);
 })();
