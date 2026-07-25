@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/config.php'; $public = kandan_public_config(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -21,14 +22,14 @@
     </aside>
     <main class="content">
       <div class="page-head">
-        <div><div class="page-title"><span class="title-icon">◴</span>Plant Availability Timeline</div><div class="page-sub">Live inverter operating status</div></div>
+        <div><div class="page-title"><span class="title-icon">◴</span>Plant Availability Timeline</div><div class="page-sub"><?php echo htmlspecialchars($public['plantName']); ?> · live inverter operating status</div></div>
         <div class="legend"><span><i style="background:#1f9f4f"></i>ONLINE</span><span><i style="background:#e92f3d"></i>OFFLINE</span><span><i style="background:#d9dee7"></i>COMM ERR</span></div>
       </div>
       <section id="availabilityList" class="timeline-list"></section>
     </main>
   </div>
 </div>
-<script>window.KANDAN_CONFIG={wsUrl:'wss://vinobasolar.scadahub.in:5001',unitId:'via-3mw',inverterCount:10,stringCount:24};</script>
+<script>window.KANDAN_CONFIG=<?php echo json_encode($public, JSON_UNESCAPED_SLASHES); ?>;</script>
 <script src="assets/kandan_dashboard.js"></script>
 </body>
 </html>
