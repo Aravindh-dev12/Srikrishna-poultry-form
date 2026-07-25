@@ -19,39 +19,44 @@ if (session_status() !== PHP_SESSION_ACTIVE) {
     session_start();
 }
 
-function kandan_accounts(): array
-{
-    return [
-        strtolower(getenv('KANDAN_ADMIN_EMAIL') ?: 'admin@kandan.com') => [
-            'password_hash' => hash('sha256', getenv('KANDAN_ADMIN_PASSWORD') ?: 'admin@123'),
-            'role' => 'admin',
-            'label' => 'Administrator',
-            'plant_id' => 'kandan',
-        ],
-        strtolower(getenv('KANDAN_USER_EMAIL') ?: 'kandan@scada.com') => [
-            'password_hash' => hash('sha256', getenv('KANDAN_USER_PASSWORD') ?: 'landan@123'),
-            'role' => 'user',
-            'label' => 'Kandan User',
-            'plant_id' => 'kandan',
-        ],
-    ];
-}
-
 function kandan_authenticate(string $email, string $password): ?array
 {
     $email = strtolower(trim($email));
-    $account = kandan_accounts()[$email] ?? null;
-
-    if (!$account || !hash_equals($account['password_hash'], hash('sha256', $password))) {
+    if ($email === '' || $password === '') {
         return null;
     }
 
+    $db = kandan_db();
+    if (!$db) {
+        throw new RuntimeException('Database connection is unavailable. Check the KANDAN_DB_* server settings and import setup_kandan_db.sql.');
+    }
+
+    $stmt = $db->prepare(
+        'SELECT id, email, password_hash, display_name, role, plant_id
+         FROM users
+         WHERE email = :email AND plant_id = :plant_id AND is_active = 1
+         LIMIT 1'
+    );
+    $stmt->execute([
+        ':email' => $email,
+        ':plant_id' => 'kandan',
+    ]);
+    $account = $stmt->fetch();
+
+    if (!$account || !password_verify($password, (string)$account['password_hash'])) {
+        return null;
+    }
+
+    $db->prepare('UPDATE users SET last_login_at = NOW() WHERE id = :id')
+        ->execute([':id' => (int)$account['id']]);
+
     session_regenerate_id(true);
     $_SESSION['kandan_user'] = [
-        'email' => $email,
-        'role' => $account['role'],
-        'label' => $account['label'],
-        'plant_id' => $account['plant_id'],
+        'id' => (int)$account['id'],
+        'email' => (string)$account['email'],
+        'role' => (string)$account['role'],
+        'label' => (string)$account['display_name'],
+        'plant_id' => (string)$account['plant_id'],
         'signed_in_at' => time(),
     ];
 
@@ -97,7 +102,15 @@ function kandan_logout(): void
 
     if (ini_get('session.use_cookies')) {
         $params = session_get_cookie_params();
-        setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'] ?? '', (bool)$params['secure'], (bool)$params['httponly']);
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params['path'],
+            $params['domain'] ?? '',
+            (bool)$params['secure'],
+            (bool)$params['httponly']
+        );
     }
 
     session_destroy();
