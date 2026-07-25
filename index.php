@@ -32,6 +32,7 @@ if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Kandan SCADA Sign In</title>
   <link rel="stylesheet" href="assets/kandan_dashboard.css">
+  <link rel="stylesheet" href="assets/kandan_auth.css">
 </head>
 <body class="login-page">
   <main class="login-shell">
@@ -46,21 +47,12 @@ if (strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'POST') {
       <?php endif; ?>
 
       <form method="post" class="login-form" autocomplete="on">
-        <label>
-          <span>Email address</span>
-          <input type="email" name="email" value="<?php echo htmlspecialchars($email); ?>" autocomplete="username" required autofocus>
-        </label>
-        <label>
-          <span>Password</span>
-          <input type="password" name="password" autocomplete="current-password" required>
-        </label>
+        <label><span>Email address</span><input type="email" name="email" value="<?php echo htmlspecialchars($email); ?>" autocomplete="username" required autofocus></label>
+        <label><span>Password</span><input type="password" name="password" autocomplete="current-password" required></label>
         <button type="submit">Sign in to Kandan</button>
       </form>
 
-      <div class="login-plant-meta">
-        <span>Plant ID</span><strong>kandan</strong>
-        <span>Unit ID</span><strong>via-3mw</strong>
-      </div>
+      <div class="login-plant-meta"><span>Plant ID</span><strong>kandan</strong><span>Unit ID</span><strong>via-3mw</strong></div>
     </section>
   </main>
 </body>
