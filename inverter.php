@@ -1,3 +1,4 @@
+<?php require __DIR__ . '/config.php'; $public = kandan_public_config(); ?>
 <!doctype html>
 <html lang="en">
 <head>
@@ -21,14 +22,14 @@
     </aside>
     <main class="content">
       <div class="page-head">
-        <div><div class="page-title"><span class="title-icon">▣</span>Dense String Matrix</div><div class="page-sub">10 inverters × 24 strings</div></div>
+        <div><div class="page-title"><span class="title-icon">▣</span>Dense String Matrix</div><div class="page-sub"><?php echo (int)$public['inverterCount']; ?> inverters × <?php echo (int)$public['stringCount']; ?> strings</div></div>
         <div class="page-live"><span class="live-dot" data-live-dot></span><span data-ws-status>CONNECTING</span></div>
       </div>
       <section class="card panel matrix"><div id="stringMatrix" class="matrix-grid"></div></section>
     </main>
   </div>
 </div>
-<script>window.KANDAN_CONFIG={wsUrl:'wss://vinobasolar.scadahub.in:5001',unitId:'via-3mw',inverterCount:10,stringCount:24};</script>
+<script>window.KANDAN_CONFIG=<?php echo json_encode($public, JSON_UNESCAPED_SLASHES); ?>;</script>
 <script src="assets/kandan_dashboard.js"></script>
 </body>
 </html>
